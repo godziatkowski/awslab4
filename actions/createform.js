@@ -12,15 +12,24 @@ var task = function(request, callback){
 	var awsConfig = helpers.readJSONFile(AWS_CONFIG_FILE);
 	var policyData = helpers.readJSONFile(POLICY_FILE);
 
-	//2. prepare policy
+	//2. prepare policy	
+	policyData.conditions.push({"x-amz-meta-ip-adress" : request.ip})
+    policyData.conditions.push({"x-amz-meta-name" : "Jan"})
+	policyData.conditions.push({"x-amz-meta-surname" : "Godziatkowski"})
 	var policy = new Policy(policyData);
-
+	
 	//3. generate form fields for S3 POST
 	var s3Form = new S3Form(policy);
 	//4. get bucket name
+	var bucket = policyData.conditions[1]["bucket"];
+	var fields = s3Form.generateS3FormFields();
+	s3Form.addS3CredientalsFields(fields, awsConfig);
 	
 
-	callback(null, {template: INDEX_TEMPLATE, params:{fields:[], bucket:""}});
+	callback(null, {template: INDEX_TEMPLATE, 
+		params:{fields: fields, 
+		bucket:bucket}
+	});
 }
 
 exports.action = task;
